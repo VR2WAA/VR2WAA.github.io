@@ -1,235 +1,357 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Enhanced Chinese White Dolphin Recognition System Design Based on Stable Diffusion Model and Visual Recognition</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            line-height: 1.6;
-            margin: 20px;
-            padding: 20px;
-            background-color: #f4f4f9;
-            color: #333;
-        }
-        h1 {
-            text-align: center;
-            color: #0056b3;
-        }
-        form {
-            margin: 20px 0;
-            padding: 20px;
-            background: #fff;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-        }
-        label {
-            display: block;
-            margin-bottom: 10px;
-            font-weight: bold;
-        }
-        input, button {
-            display: block;
-            margin: 10px 0;
-            padding: 10px;
-            font-size: 16px;
-            width: 100%;
-        }
-        #progressBar {
-            display: none;
-            width: 100%;
-            background-color: #ddd;
-            margin-top: 10px;
-        }
-        #progressBar div {
-            height: 20px;
-            width: 0;
-            background-color: #0056b3;
-            text-align: center;
-            line-height: 20px;
-            color: white;
-        }
-        #uploadStatus {
-            margin-top: 10px;
-            font-size: 14px;
-            color: #555;
-            display: none;
-        }
-        #result {
-            margin-top: 20px;
-            padding: 15px;
-            background: #eef;
-            border-left: 4px solid #0056b3;
-        }
-        #error {
-            margin-top: 20px;
-            padding: 15px;
-            background: #ffe6e6;
-            border-left: 4px solid #b30000;
-        }
-        footer {
-            text-align: center;
-            margin-top: 40px;
-            color: #888;
-            font-size: 14px;
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VR2WAA</title>
+<style>
+/* 全局容器 - 哑光银白机身 */
+.qrz-skeuo-container {
+    width: 100%;
+    max-width: 800px;
+    margin: 0 auto;
+    font-family: "Consolas", "Courier New", monospace;
+    background: #e8e8e8; /* 浅灰机身 */
+    padding: 15px;
+    border-radius: 8px;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.8), 0 8px 20px rgba(0,0,0,0.25);
+}
+.qrz-tab-radio { display: none; }
+
+/* 导航栏 - 铝合金面板底座 */
+.qrz-tab-nav {
+    display: flex;
+    width: 100%;
+    gap: 6px;
+    padding: 12px 8px;
+    background: linear-gradient(180deg, #d0d0d0 0%, #c0c0c0 100%);
+    border-radius: 6px;
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.15), 0 1px 0 rgba(255,255,255,0.9);
+}
+
+/* 金属按钮拟物核心 - 亮银拉丝 */
+.qrz-tab-label {
+    flex: 1;
+    text-align: center;
+    padding: 12px 4px;
+    cursor: pointer;
+    border-radius: 4px;
+    position: relative;
+    overflow: hidden;
+    /* 浅色金属拉丝纹理 */
+    background: repeating-linear-gradient(
+        45deg,
+        #f0f0f0 0px,
+        #e5e5e5 1px,
+        #f0f0f0 2px,
+        #e0e0e0 3px
+    );
+    /* 凸起按钮光影 - 浅色版 */
+    box-shadow: 
+        0 4px 6px rgba(0,0,0,0.2),
+        inset 0 1px 0 rgba(255,255,255,0.9),
+        inset 0 -1px 0 rgba(0,0,0,0.1);
+    transition: all 0.15s ease;
+}
+.qrz-tab-cn {
+    display: block;
+    font-size: 18px;
+    font-weight: bold;
+    color: #333333; /* 深灰文字 */
+    text-shadow: 0 1px 0 rgba(255,255,255,0.8);
+}
+.qrz-tab-en {
+    display: block;
+    font-size: 12px;
+    color: #666666; /* 中灰文字 */
+    text-shadow: 0 1px 0 rgba(255,255,255,0.8);
+    margin-top: 2px;
+}
+
+/* 按钮按下（选中）拟物效果 */
+#tab1:checked ~ .qrz-tab-nav label[for="tab1"],
+#tab2:checked ~ .qrz-tab-nav label[for="tab2"],
+#tab3:checked ~ .qrz-tab-nav label[for="tab3"],
+#tab4:checked ~ .qrz-tab-nav label[for="tab4"],
+#tab5:checked ~ .qrz-tab-nav label[for="tab5"] {
+    box-shadow: 
+        inset 0 4px 8px rgba(0,0,0,0.25),
+        inset 0 -1px 0 rgba(255,255,255,0.5);
+    transform: translateY(2px);
+    background: repeating-linear-gradient(
+        45deg,
+        #e0e0e0 0px,
+        #d5d5d5 1px,
+        #e0e0e0 2px,
+        #d0d0d0 3px
+    );
+}
+#tab1:checked ~ .qrz-tab-nav label[for="tab1"] .qrz-tab-cn,
+#tab2:checked ~ .qrz-tab-nav label[for="tab2"] .qrz-tab-cn,
+#tab3:checked ~ .qrz-tab-nav label[for="tab3"] .qrz-tab-cn,
+#tab4:checked ~ .qrz-tab-nav label[for="tab4"] .qrz-tab-cn,
+#tab5:checked ~ .qrz-tab-nav label[for="tab5"] .qrz-tab-cn {
+    color: #0066cc; /* 科技蓝高亮 */
+}
+.qrz-tab-label:hover {
+    filter: brightness(1.05);
+}
+
+/* 内容区 - 白色凹陷面板 */
+.qrz-tab-content {
+    display: none;
+    padding: 25px 20px;
+    margin-top: 10px;
+    background: #ffffff;
+    border-radius: 6px;
+    color: #333333;
+    line-height: 1.7;
+    box-shadow: inset 0 3px 8px rgba(0,0,0,0.15), 0 1px 0 rgba(255,255,255,1);
+}
+.qrz-tab-content h2 {
+    color: #0066cc;
+    border-bottom: 1px solid #e0e0e0;
+    padding-bottom: 8px;
+    margin-top: 0;
+    margin-bottom: 15px;
+}
+
+/* 新增：适配About区域的内容卡片样式 */
+.wwa-card {
+    background: #f8f9fa;
+    border-radius: 8px;
+    margin-bottom: 30px;
+    padding: 15px;
+    text-align: center;
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.08);
+}
+/* 核心修复：图片比例控制 */
+.wwa-card img {
+    width: 35%; /* 保持原有宽度比例 */
+    max-width: 300px; /* 限制最大宽度 */
+    height: auto; /* 关键：自动根据宽度计算高度，保持原始比例 */
+    object-fit: contain; /* 防止图片拉伸变形 */
+}
+.wwa-card h1 {
+    color: #333;
+    margin: 15px 0 0 0;
+    font-size: 24px;
+}
+.wwa-card h3 {
+    font-size: 22px;
+    margin: 0 0 10px 0;
+}
+.wwa-card p {
+    font-size: 22px;
+    font-weight: bold;
+    margin: 0;
+    color: #666;
+}
+.wwa-card a {
+    color: #0066cc;
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+.wwa-card a:hover {
+    color: #004999;
+    text-decoration: underline;
+}
+
+
+.wwWa-card {
+    background: #f8f9fa;
+    border-radius: 8px;
+    margin-bottom: 30px;
+    padding: 15px;
+    text-align: left;
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.08);
+}
+/* 核心修复：图片比例控制 */
+.wwWa-card img {
+    width: 35%; /* 保持原有宽度比例 */
+    max-width: 300px; /* 限制最大宽度 */
+    height: auto; /* 关键：自动根据宽度计算高度，保持原始比例 */
+    object-fit: contain; /* 防止图片拉伸变形 */
+}
+.wwWa-card h1 {
+    color: #333;
+    margin: 15px 0 0 0;
+    font-size: 24px;
+}
+.wwWa-card h3 {
+    font-size: 22px;
+    margin: 0 0 10px 0;
+}
+.wwWa-card p {
+    font-size: 22px;
+    font-weight: bold;
+    margin: 0;
+    color: #666;
+}
+.wwWa-card a {
+    color: #0066cc;
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+.wwWa-card a:hover {
+    color: #004999;
+    text-decoration: underline;
+}
+
+/* ========== 核心优化：Livestream 缩放+裁剪样式 ========== */
+/* 外层裁剪容器：控制最终显示尺寸、隐藏滚动条、裁掉冗余内容 */
+.livestream-iframe-wrapper {
+    width: 100%;
+    height: 550px; /* 最终显示的高度，数值越小裁掉的下方空白越多，可微调 */
+    overflow: hidden; /* 核心：隐藏超出内容+滚动条，彻底不用左右拖动 */
+    border-radius: 6px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+/* 内层iframe：等比例缩放，完整显示原页面全貌，无变形 */
+.livestream-iframe {
+    width: 1100px; /* 固定值：和Club Log原页面宽度完全一致，不可修改 */
+    height: 780px; /* 原页面加载高度，裁掉下方黑色冗余，可按需调整 */
+    border: none;
+    transform: scale(0.7); /* 核心：等比例缩小70%，数值越小缩得越小，可微调 */
+    transform-origin: top left; /* 缩放锚点：左上角，保证对齐不偏移，必须保留 */
+}
+
+/* 标签切换核心逻辑 */
+#tab1:checked ~ .qrz-tab-content-wrap #content1,
+#tab2:checked ~ .qrz-tab-content-wrap #content2,
+#tab3:checked ~ .qrz-tab-content-wrap #content3,
+#tab4:checked ~ .qrz-tab-content-wrap #content4,
+#tab5:checked ~ .qrz-tab-content-wrap #content5 {
+    display: block;
+}
+</style>
 </head>
 <body>
-    <h1>Enhanced Chinese White Dolphin Recognition System Design Based on Stable Diffusion Model and Visual Recognition</h1>
+<div class="qrz-skeuo-container">
+    <!-- 切换单选框（隐藏） -->
+    <input type="radio" name="qrz-tab" id="tab1" class="qrz-tab-radio" checked>
+    <input type="radio" name="qrz-tab" id="tab2" class="qrz-tab-radio">
+    <input type="radio" name="qrz-tab" id="tab3" class="qrz-tab-radio">
+    <input type="radio" name="qrz-tab" id="tab4" class="qrz-tab-radio">
+    <input type="radio" name="qrz-tab" id="tab5" class="qrz-tab-radio">
 
-    <form id="urlForm">
-        <label for="imageUrl">input image URL:</label>
-        <input type="text" id="imageUrl" placeholder="Enter image URL">
-        <button type="button" onclick="identifyViaUrl()">Identification</button>
-    </form>
+    <!-- 顶部导航按钮 -->
+    <div class="qrz-tab-nav">
+        <label for="tab1" class="qrz-tab-label">
+            <span class="qrz-tab-cn">About</span>
+        </label>
+        <label for="tab2" class="qrz-tab-label">
+            <span class="qrz-tab-cn">Livestream</span>
+        </label>
+        <label for="tab3" class="qrz-tab-label">
+            <span class="qrz-tab-cn">QSL Information</span>
+        </label>
+        <label for="tab4" class="qrz-tab-label">
+            <span class="qrz-tab-cn">World Wide Award Hong Kong</span>
+        </label>
+        <label for="tab5" class="qrz-tab-label">
+            <span class="qrz-tab-cn">POTA</span>
+        </label>
+    </div>
 
-    <form id="fileForm">
-        <label for="imageFile">upload the image file:</label>
-        <input type="file" id="imageFile" accept="image/*">
-        <button type="button" onclick="identifyViaFile()">Identification</button>
-        <div id="progressBar"><div></div></div>
-        <div id="uploadStatus"></div>
-    </form>
+    <!-- 内容区域 -->
+    <div class="qrz-tab-content-wrap">
+        <!-- 1. About -->
+        <div id="content1" class="qrz-tab-content">
+            <div class="wwa-card">
+                <h1><img src="https://private-user-images.githubusercontent.com/180669262/556429253-4c4b56b8-a539-4ab6-a1c3-b424ec1e9791.png?jwt=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJnaXRodWIuY29tIiwiYXVkIjoicmF3LmdpdGh1YnVzZXJjb250ZW50LmNvbSIsImtleSI6ImtleTUiLCJleHAiOjE3NzIyOTc5NzEsIm5iZiI6MTc3MjI5NzY3MSwicGF0aCI6Ii8xODA2NjkyNjIvNTU2NDI5MjUzLTRjNGI1NmI4LWE1MzktNGFiNi1hMWMzLWI0MjRlYzFlOTc5MS5wbmc_WC1BbXotQWxnb3JpdGhtPUFXUzQtSE1BQy1TSEEyNTYmWC1BbXotQ3JlZGVudGlhbD1BS0lBVkNPRFlMU0E1M1BRSzRaQSUyRjIwMjYwMjI4JTJGdXMtZWFzdC0xJTJGczMlMkZhd3M0X3JlcXVlc3QmWC1BbXotRGF0ZT0yMDI2MDIyOFQxNjU0MzFaJlgtQW16LUV4cGlyZXM9MzAwJlgtQW16LVNpZ25hdHVyZT1jZmU2ZjQyYjhkMzc3YzkzODFkNzEwZTQzZGZlNTc1OTc2N2JjYzdiNmI5MjcwZjQ1NmE5ZTBkMDdjMDJjZDZiJlgtQW16LVNpZ25lZEhlYWRlcnM9aG9zdCJ9.a-h13qTPzZYOL0O45E6pvwlIqdnHcI4GmMpTdaCjWvQ"  alt="VR2WAA"></h1>
+                <h1>Hong Kong Personal Amateur Radio Station</h1>
+            </div>
+            <div class="wwa-card">
+                <p style="font-size: 25;"><strong><a href="https://prog.vr2waa.space/">HF Propagation Monitor(Beta)</a></strong></p>
+                <p style="font-size: 18;">Click the link to watch real-time propagation faster and convenient</p>
+            </div>
+            <div id="wwa-container">
+                <div style="background:#f8f9fa; border-radius:8px; font-family:Arial,sans-serif; margin-bottom:20px; margin-left:0; margin-right:0; margin-top:20px; padding:20px">
+                    <!-- About部分标题 -->
+                    <div style="background:#e9ecef; border-left:5px solid #007bff; border-radius:5px; margin-bottom:15px; margin-left:0; margin-right:0; margin-top:0; padding:15px">
+                        <h2 style="margin-left:0; margin-right:0"><span style="font-size:28px">About VR2WAA</span></h2>
+                    </div>
+                    <div id="wwa-container-inner">
+                        <p style="color:#555555; font-size:16px; line-height:1.5; margin-bottom:12px; margin-left:0; margin-right:0; margin-top:0; padding:0"><span style="font-size:20px"><strong>Start Date:</strong> January 2024</span></p>
+                        <p style="color:#555555; font-size:16px; line-height:1.5; margin-bottom:12px; margin-left:0; margin-right:0; margin-top:0; padding:0"><span style="font-size:20px"><strong>About Me:</strong> Secondary school student</span></p>
+                        <p style="color:#555555; font-size:16px; line-height:1.5; margin-bottom:25px; margin-left:0; margin-right:0; margin-top:0; padding:0"><span style="font-size:20px"><strong>Equipment:</strong> Xiegu-G90S (When QRP operation)</span></p>
+                        <h1 style="margin-left:0; margin-right:0"><span style="font-size:20px"><span style="color:#2980b9">IOTA</span>&nbsp;<span style="color:#27ae60">SOTA</span>&nbsp;<span style="color:#c0392b">POTA </span>Activist</span></h1>
+                    </div>
+                </div>
+            </div>
+            <div style="background:#f8f9fa; border-radius:8px; margin-bottom:30px; padding:15px; text-align:center;font-family: Arial, Helvetica, sans-serif;">
+                <p style="text-align:left"><strong><span style="font-size:24px">My contest/event&nbsp;experience</span></strong></p>
+                <p style="text-align:left"><span style="font-size:20px">2024-CQWPX</span></p>
+                <p style="text-align:left"><span style="font-size:20px">2024-IARU HF</span></p>
+                <p style="text-align:left"><span style="font-size:20px">2024-CQWW(BI7KKA)</span></p>
+                <p style="text-align:left"><span style="font-size:20px">2025-CQWPX(BI7KKA)</span></p>
+                <p style="text-align:left"><span style="font-size:20px">2025-WAPC(BI7KKA)</span></p>
+                <p style="text-align:left"><span style="font-size:20px">2025-Chinese Amateur Radio Festivals Activity (B7CRA OP)-in the name of BA7NZC</span></p>
+                <p style="text-align:left"><span style="font-size:20px">2025-World Wide DIGI Contest</span></p>
+                <p style="text-align:left"><span style="font-size:20px">2025-ARRL DIGI Contest</span></p>
+                <p style="text-align:left"><span style="font-size:20px">2026-World Wide Award(Team Leader of Hong Kong SAR)</span></p>
+            </div>
+            <div id="wwa-container">
+                <div style="background:#f8f9fa; border-radius:8px; margin-bottom:30px; padding:15px; text-align:center"><div style="margin-bottom:20px"><img src="https://private-user-images.githubusercontent.com/180669262/556532124-55d5e7c6-7987-4dab-9c9b-5f097bc5a708.png?jwt=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJnaXRodWIuY29tIiwiYXVkIjoicmF3LmdpdGh1YnVzZXJjb250ZW50LmNvbSIsImtleSI6ImtleTUiLCJleHAiOjE3NzIzNTU2NzIsIm5iZiI6MTc3MjM1NTM3MiwicGF0aCI6Ii8xODA2NjkyNjIvNTU2NTMyMTI0LTU1ZDVlN2M2LTc5ODctNGRhYi05YzliLTVmMDk3YmM1YTcwOC5wbmc_WC1BbXotQWxnb3JpdGhtPUFXUzQtSE1BQy1TSEEyNTYmWC1BbXotQ3JlZGVudGlhbD1BS0lBVkNPRFlMU0E1M1BRSzRaQSUyRjIwMjYwMzAxJTJGdXMtZWFzdC0xJTJGczMlMkZhd3M0X3JlcXVlc3QmWC1BbXotRGF0ZT0yMDI2MDMwMVQwODU2MTJaJlgtQW16LUV4cGlyZXM9MzAwJlgtQW16LVNpZ25hdHVyZT1iOTU5MWYzYjQ1YmQ0MDEyNGI2YzQ5Y2YxY2U5NzdjOTU5ZjEwYzRjOGU5OTllNjVmMGQ3YzI5ZTM0MmViZTY5JlgtQW16LVNpZ25lZEhlYWRlcnM9aG9zdCJ9.06CYS1Wr_dn8q50EAkUtK_3hxYQxmaDeEc45qMqkDi8" style="height:242px; width:520px" /></div>
+                <div style="margin-bottom:20px"><span style="font-size:20px">實事求是</span></div><div style="margin-bottom:20px"><span style="font-size:20px">Seeking truth from facts</span></div></div>
+            </div>
+            
+        </div>
+        
+        <!-- 2. Livestream（优化后：无横向滚动、裁掉下方冗余） -->
+        <div id="content2" class="qrz-tab-content">
+            <h2>Livestream - VR2WAA Station Status</h2>
+            <div class="livestream-iframe-wrapper">
+                <!-- 内层缩放iframe，scrolling="no"彻底禁用内部滚动 -->
+                <iframe src="https://clublog.org/livestream/VR2WAA" class="livestream-iframe" title="VR2WAA Club Log Livestream" scrolling="no"></iframe>
+            </div>
+        </div>
 
-    <div id="result"></div>
-    <div id="error" style="display: none;"></div>
-
-    <footer>
-        &copy; Copyright © 2024 Xu Tsz sum Michael(徐子琛). All rights reserved.
-    </footer>
-
-    <script>
-        const predictionKey = "ec5a2ca739844ae19427516b2ef9696b";
-        const urlEndpoint = "https://southcentralus.api.cognitive.microsoft.com/customvision/v3.0/Prediction/10ee44e1-f219-4c92-afb4-3072a7363384/classify/iterations/Iteration3/url";
-        const fileEndpoint = "https://southcentralus.api.cognitive.microsoft.com/customvision/v3.0/Prediction/10ee44e1-f219-4c92-afb4-3072a7363384/classify/iterations/Iteration3/image";
-
-        async function identifyViaUrl() {
-            const imageUrl = document.getElementById("imageUrl").value;
-            const resultDiv = document.getElementById("result");
-            const errorDiv = document.getElementById("error");
-            resultDiv.innerHTML = "";
-            errorDiv.style.display = "none";
-
-            if (!imageUrl) {
-                errorDiv.textContent = "Please enter a valid image URL";
-                errorDiv.style.display = "block";
-                return;
-            }
-
-            try {
-                const response = await fetch(urlEndpoint, {
-                    method: "POST",
-                    headers: {
-                        "Prediction-Key": predictionKey,
-                        "Content-Type": "application/json"
-                    },
-                    body: JSON.stringify({ Url: imageUrl })
-                });
-                const result = await response.json();
-                displayResult(result);
-            } catch (error) {
-                displayError(error);
-            }
-        }
-
-        async function identifyViaFile() {
-            const fileInput = document.getElementById("imageFile");
-            const file = fileInput.files[0];
-            const resultDiv = document.getElementById("result");
-            const errorDiv = document.getElementById("error");
-            const progressBar = document.getElementById("progressBar");
-            const progressBarFill = progressBar.querySelector("div");
-            const uploadStatus = document.getElementById("uploadStatus");
-
-            resultDiv.innerHTML = "";
-            errorDiv.style.display = "none";
-            progressBar.style.display = "none";
-            uploadStatus.style.display = "none";
-
-            if (!file) {
-                errorDiv.textContent = "Please select a valid image file";
-                errorDiv.style.display = "block";
-                return;
-            }
-
-            progressBar.style.display = "block";
-            progressBarFill.style.width = "0%";
-            progressBarFill.textContent = "0%";
-            uploadStatus.style.display = "block";
-            uploadStatus.textContent = "Please wait for the image to upload";
-
-            try {
-                const response = await fetch(fileEndpoint, {
-                    method: "POST",
-                    headers: {
-                        "Prediction-Key": predictionKey
-                    },
-                    body: file
-                });
-
-                let progress = 0;
-                const progressInterval = setInterval(() => {
-                    progress += 10;
-                    if (progress >= 90) {
-                        clearInterval(progressInterval);
-                    }
-                    progressBarFill.style.width = `${progress}%`;
-                    progressBarFill.textContent = `${progress}%`;
-                }, 300);
-
-                const result = await response.json();
-                clearInterval(progressInterval);
-                progressBarFill.style.width = "100%";
-                progressBarFill.textContent = "100%";
-
-                uploadStatus.textContent = "Upload successful！";
-                displayResult(result);
-                progressBar.style.display = "none";
-            } catch (error) {
-                displayError(error);
-                progressBar.style.display = "none";
-                uploadStatus.style.display = "none";
-            }
-        }
-
-        function displayResult(result) {
-            const predictions = result.predictions || [];
-            if (predictions.length === 0) {
-                displayError("No predictions were made.");
-                return;
-            }
-
-            const highestPrediction = predictions.reduce((prev, current) => 
-                (prev.probability > current.probability) ? prev : current
-            );
-
-            // 修改输出的类名
-            let tagName = highestPrediction.tagName;
-            if (tagName === "DOPHIN") {
-                tagName = "Other dolphin/其它海豚";
-            }
-            if (tagName === "Chinese white dolphin") {
-                tagName = "Chinese white dolphin/中華白海豚";
-            }
-            if (tagName === "Other") {
-                tagName = "Other/其它";
-            }
-
-            const resultDiv = document.getElementById("result");
-            resultDiv.innerHTML = `
-                <h2>Identification Results:</h2>
-                <p><strong>category:</strong> ${tagName}</p>
-                <p><strong>Precision:</strong> ${(highestPrediction.probability * 100).toFixed(2)}%</p>
-            `;
-        }
-
-        function displayError(error) {
-            const errorDiv = document.getElementById("error");
-            errorDiv.textContent = `Error: ${error.message || error}`;
-            errorDiv.style.display = "block";
-        }
-    </script>
+        <!-- 3. QSL Information -->
+        <div id="content3" class="qrz-tab-content" style="font-family: Arial, Helvetica, sans-serif;">
+            <h2>QSL Information</h2>           
+            <p style="color:#555555; font-size:16px; line-height:1.5; margin-bottom:12px; margin-left:0; margin-right:0; margin-top:0; padding:0"><span style="font-size:20px">&bull; Confirm QSO via QRZ,LoTW and Clublog</span></p>
+            <p style="color:#555555; font-size:16px; line-height:1.5; margin-bottom:12px; margin-left:0; margin-right:0; margin-top:0; padding:0"><span style="font-size:20px">&bull; All FTx Mode QSO is real-time upload to QRZ and Clublog</span></p>
+            <p style="color:#555555; font-size:16px; line-height:1.5; margin-bottom:12px; margin-left:0; margin-right:0; margin-top:0; padding:0"><span style="font-size:20px">&bull; <strong>I will reply&nbsp;QSL cards directly,Recommend to attach 2 <u>Green Stamps</u> or <u>beforehand OQRS</u> but <u>not&nbsp;unnecessary</u></strong></span></p>
+            <iframe align="top" frameborder="0" height="325" name="iframe" scrolling="yes" src="https://clublog.org/last10_iframe.php?call=VR2WAA" width="500"></iframe>
+            <hr>
+            <p style="font-size: 20px;">QSL Cards Mailing Address</p>
+            <table border="4">
+                <tr><td><p style="font-size: 25px;"><strong>G.P.O. Box No.541,Hong Kong</strong></p></td></tr>
+            </table>
+            <hr>
+            <p>Below information is only for QTH in Chinese Mainland: <br>如果你的QTH在中国内地 ，请寄往我的内地卡片管理员<a href="https://www.qrz.com/db/BD7PRC">BD7PRC</a>,不需附上邮资。</p>
+            <table border="4">
+                <tr><td><p style="font-size: 15px;"><strong>郭励睿BD7PRC收<br>广东省深圳市福田区百花四路10号 B栋6号信箱<br>邮编518028，电话1812629985</strong></p></td></tr>
+            </table>
+        </div>
+        
+        <!-- 4. World Wide Award Hong Kong -->
+        <div id="content4" class="qrz-tab-content">
+            <h2>HKSAR Team of World Wide Award</h2>
+            <p style="font-family: Arial, Helvetica, sans-serif;font-size: 20px;">In 2026, we organised the team of HKSAR to participate in the World Wide Award as Activator.This marks the first time HKSAR has participated in WWA as a team.</p>
+            <p style="font-family: Arial, Helvetica, sans-serif;font-size: 20px;"><strong>Callsign:</strong> VR2WAA<br><strong>Team Leader:</strong>VR2WAA<br>
+            <strong>Operators:</strong>VR2WAA,VR2XAN</p>
+            <p style="font-family: Arial, Helvetica, sans-serif;font-size: 20px;"><strong>Start Date:</strong>2026/01/01<br><strong>End Date:</strong>2026/01/31<br><strong>Ranking in China of Activator:</strong>SSB #6/60<br><strong>Ranking in China of Team:</strong>SSB #6/11</p>
+            <div class="livestream-iframe-wrapper">
+                <!-- 内层缩放iframe，scrolling="no"彻底禁用内部滚动 -->
+                <iframe src="https://hamaward.cloud/aw405?iframe=1&amp;nojs=1&amp;activator_call=vr2waa" class="livestream-iframe" title="VR2WAA WWA PAGE" ></iframe>
+            </div>
+        </div>
+        
+        <!-- 5. POTA -->
+        <div id="content5" class="qrz-tab-content">
+            <h2>Parks On The Air</h2>
+            <iframe 
+            src="https://pota-stats.wd4dan.net/?call=VR2WAA&options=activatoronly" 
+            frameborder="0" 
+            width="100%" 
+            height="950px" 
+            title="VR2WAA POTA">
+        </iframe>
+        </div>
+    </div>
+</div>
 </body>
 </html>
